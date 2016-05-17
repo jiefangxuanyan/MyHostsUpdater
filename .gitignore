@@ -137,6 +137,7 @@ ENV/
 
 ### Output files
 /log.txt
+/out.txt
 ### Configure files
 /system.py
 /methods.py

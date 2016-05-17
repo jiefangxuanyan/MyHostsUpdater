@@ -5,7 +5,8 @@ from methods import methods
 from subprocess import call
 from system import path, cmd
 
-if __name__ == "__main__":
+
+def main():
     table = {}
     try:
         fout = open(path, "w")
@@ -33,3 +34,8 @@ if __name__ == "__main__":
         print>> fout, ip, name, "#", src
     fout.close()
     call(cmd)
+    print>> flog, "OK!"
+
+
+if __name__ == "__main__":
+    main()
