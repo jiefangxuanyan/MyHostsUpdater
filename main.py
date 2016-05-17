@@ -3,11 +3,12 @@ import urllib2
 from sources import sources
 from methods import methods
 from subprocess import call
+from system import path, cmd
 
 if __name__ == "__main__":
     table = {}
     try:
-        fout = open(u"C:\\Windows\\System32\\drivers\\etc\\hosts", "w")
+        fout = open(path, "w")
     except IOError as e:
         fout = open(u"out.txt", "w")
     flog = open(u"log.txt", "w")
@@ -31,4 +32,4 @@ if __name__ == "__main__":
     for name, (ip, src) in table.iteritems():
         print>> fout, ip, name, "#", src
     fout.close()
-    call(["ipconfig", "/flushdns"])
+    call(cmd)

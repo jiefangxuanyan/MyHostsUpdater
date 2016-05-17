@@ -136,4 +136,8 @@ ENV/
 # Created by .ignore support plugin (hsz.mobi)
 
 ### Output files
-log.txt
+/log.txt
+### Configure files
+/system.py
+/methods.py
+/sources.py
