@@ -142,3 +142,4 @@ ENV/
 /system.py
 /methods.py
 /sources.py
+/config.py

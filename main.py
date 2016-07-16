@@ -1,9 +1,7 @@
 # coding=utf-8
 import urllib2
-from sources import sources
-from methods import methods
 from subprocess import call
-from system import path, cmd
+from config import *
 
 
 def main():
@@ -23,7 +21,14 @@ def main():
                     if len(fields) >= 2:
                         ip = fields[0]
                         name = fields[1]
-                        if name not in table:
+                        exclude = False
+                        for pat in excludes:
+                            if pat.search(name):
+                                exclude = True
+                                break
+                        if exclude:
+                            print>> flog, "exclude (%s, %s) from %s" % (ip, name, src)
+                        elif name not in table:
                             table[name] = (ip, src)
         except urllib2.URLError as e:
             for line in unicode(e).splitlines():
