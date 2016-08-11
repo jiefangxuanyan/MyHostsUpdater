@@ -4,6 +4,13 @@ from subprocess import call
 from config import *
 
 
+def get_key(tup):
+    name, (_, _) = tup
+    res = name.split(".")
+    res.reverse()
+    return res
+
+
 def main():
     table = {}
     try:
@@ -35,7 +42,7 @@ def main():
                 log = src + ":", line
                 print >> fout, "#", log
                 print >> flog, log
-    for name, (ip, src) in table.iteritems():
+    for name, (ip, src) in sorted(table.iteritems(), key=get_key):
         print>> fout, ip, name, "#", src
     fout.close()
     call(cmd)
