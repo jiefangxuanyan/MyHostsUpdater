@@ -10,6 +10,11 @@ methods = {
     u"XX-Net": urllib2.build_opener(urllib2.ProxyHandler({'http': 'localhost:8087', 'https': 'localhost:8087'})),
 }
 
+defaults = [
+    (u"127.0.0.1", u"localhost"),
+    (u"::1", u"localhost"),
+]
+
 sources = [
     (u"laod", u"file:///G:/software/Windows系列跟苹果系列/hosts", None),
     (u"racaljk", u"https://raw.githubusercontent.com/racaljk/hosts/master/hosts", None),

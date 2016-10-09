@@ -2,6 +2,7 @@
 import urllib2
 from subprocess import call
 from config import *
+from itertools import chain
 
 
 def get_key(tup):
@@ -9,6 +10,11 @@ def get_key(tup):
     res = name.split(".")
     res.reverse()
     return res
+
+
+def get_defaults():
+    for ip, name in defaults:
+        yield name, (ip, u"default")
 
 
 def main():
@@ -42,7 +48,9 @@ def main():
                 log = src + ":", line
                 print >> fout, "#", log
                 print >> flog, log
-    for name, (ip, src) in sorted(table.iteritems(), key=get_key):
+    for _, name in defaults:
+        table.pop(name, None)
+    for name, (ip, src) in chain(get_defaults(), sorted(table.iteritems(), key=get_key)):
         print>> fout, ip, name, "#", src
     fout.close()
     call(cmd)
