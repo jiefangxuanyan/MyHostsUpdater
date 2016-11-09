@@ -3,58 +3,71 @@ import urllib2
 from subprocess import call
 from config import *
 from itertools import chain
+import ipaddress
+import codecs
 
 
 def get_key(tup):
-    name, (_, _) = tup
+    (name, version), (_, _) = tup
     res = name.split(".")
     res.reverse()
-    return res
+    return res, version
 
 
-def get_defaults():
-    for ip, name in defaults:
-        yield name, (ip, u"default")
+def put_ip(table, ip, name, src, flog):
+    exclude = False
+    for pat in excludes:
+        if pat.search(name):
+            exclude = True
+            break
+    if exclude:
+        print>> flog, "exclude (%s, %s) from %s" % (ip, name, src)
+    else:
+        try:
+            address = ipaddress.ip_address(ip)
+            if isinstance(address, ipaddress.IPv4Address):
+                table.setdefault((name, 4), (ip, src))
+            elif isinstance(address, ipaddress.IPv6Address):
+                table.setdefault((name, 6), (ip, src))
+            else:
+                raise ValueError
+        except ValueError as e:
+            for line in unicode(e).splitlines():
+                log = src + u": " + line
+                print >> flog, log
 
 
 def main():
     table = {}
     try:
-        fout = open(path, "w")
+        fout = codecs.open(path, u"w", encoding=u"utf-8")
     except IOError as e:
-        fout = open(u"out.txt", "w")
-    flog = open(u"log.txt", "w")
+        fout = codecs.open(u"out.txt", u"w", encoding=u"utf-8")
+    flog = codecs.open(u"log.txt", u"w", encoding=u"utf-8")
+    for (ip, name) in defaults:
+        put_ip(table, ip, name, u"default", flog)
     for src, url, method in sources:
         try:
             resp = methods[method].open(url)
+            charset = resp.headers.getparam(u'charset') or u"utf-8"
             for line in resp:
-                parts = line.split('#', 2)
+                parts = line.decode(charset).split(u'#', 2)
                 if parts:
                     fields = [s for s in parts[0].split() if s]
                     if len(fields) >= 2:
                         ip = fields[0]
                         name = fields[1]
-                        exclude = False
-                        for pat in excludes:
-                            if pat.search(name):
-                                exclude = True
-                                break
-                        if exclude:
-                            print>> flog, "exclude (%s, %s) from %s" % (ip, name, src)
-                        elif name not in table:
-                            table[name] = (ip, src)
+                        put_ip(table, ip, name, src, flog)
         except urllib2.URLError as e:
             for line in unicode(e).splitlines():
-                log = src + ":", line
-                print >> fout, "#", log
+                log = src + u": " + line
+                print >> fout, u"#", log
                 print >> flog, log
-    for _, name in defaults:
-        table.pop(name, None)
-    for name, (ip, src) in chain(get_defaults(), sorted(table.iteritems(), key=get_key)):
-        print>> fout, ip, name, "#", src
+    for (name, version), (ip, src) in sorted(table.iteritems(), key=get_key):
+        print>> fout, ip, name, u"#", src + u",", u"IPv" + str(version)
     fout.close()
     call(cmd)
-    print>> flog, "OK!"
+    print>> flog, u"OK!"
 
 
 if __name__ == "__main__":
