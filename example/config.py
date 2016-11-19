@@ -26,3 +26,8 @@ sources = [
 excludes = [
     re.compile(ur"(?<!gist\.)github\.com$"),
 ]
+
+allow = {
+    4: True,
+    6: True,
+}

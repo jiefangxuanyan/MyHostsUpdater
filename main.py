@@ -25,9 +25,9 @@ def put_ip(table, ip, name, src, flog):
     else:
         try:
             address = ipaddress.ip_address(ip)
-            if isinstance(address, ipaddress.IPv4Address):
+            if isinstance(address, ipaddress.IPv4Address) and allow[4]:
                 table.setdefault((name, 4), (ip, src))
-            elif isinstance(address, ipaddress.IPv6Address):
+            elif isinstance(address, ipaddress.IPv6Address) and allow[6]:
                 table.setdefault((name, 6), (ip, src))
             else:
                 raise ValueError
