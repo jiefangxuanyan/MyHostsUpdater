@@ -143,3 +143,4 @@ ENV/
 /methods.py
 /sources.py
 /config.py
+*.lnk
