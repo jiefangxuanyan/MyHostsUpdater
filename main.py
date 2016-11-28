@@ -21,7 +21,7 @@ def put_ip(table, ip, name, src, flog):
             exclude = True
             break
     if exclude:
-        print>> flog, "exclude (%s, %s) from %s" % (ip, name, src)
+        print>> flog, u"exclude (%s, %s) from %s" % (ip, name, src)
     else:
         try:
             address = ipaddress.ip_address(ip)
@@ -63,8 +63,16 @@ def main():
                 log = src + u": " + line
                 print >> fout, u"#", log
                 print >> flog, log
+    fsw = codecs.open(u"switch.txt", u"w", encoding=u"utf-8")
+    print>> fsw, u"[SwitchyOmega Conditions]"
     for (name, version), (ip, src) in sorted(table.iteritems(), key=get_key):
-        print>> fout, ip, name, u"#", src + u",", u"IPv" + str(version)
+        if version == 4:
+            print>> fsw, name
+        if version == 4 or allow_6_only or (name, 4) in table:
+            print>> fout, ip, name, u"#", src + u",", u"IPv" + str(version)
+        else:
+            print>> flog, u"(%s, %s) from %s is IPv6 only." % (ip, name, src)
+    fsw.close()
     fout.close()
     call(cmd)
     print>> flog, u"OK!"
