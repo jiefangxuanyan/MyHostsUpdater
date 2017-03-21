@@ -1,10 +1,14 @@
-# coding=utf-8
-import urllib2
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future.builtins import *
+
 from subprocess import call
 from config import *
-from itertools import chain
 import ipaddress
-import codecs
+import requests
+import contextlib
+import collections
+import os
 
 
 def get_key(tup):
@@ -21,7 +25,7 @@ def put_ip(table, ip, name, src, flog):
             exclude = True
             break
     if exclude:
-        print>> flog, u"exclude (%s, %s) from %s" % (ip, name, src)
+        print("exclude (%s, %s) from %s" % (ip, name, src), file=flog)
     else:
         try:
             address = ipaddress.ip_address(ip)
@@ -32,50 +36,74 @@ def put_ip(table, ip, name, src, flog):
             else:
                 raise ValueError
         except ValueError as e:
-            for line in unicode(e).splitlines():
-                log = src + u": " + line
-                print >> flog, log
+            for line in str(e).splitlines():
+                log = src + ": " + line
+                print(log, file=flog)
 
 
-def main():
+def nt_pem(func):
+    import wincertstore
+    def wrapped():
+        with wincertstore.CertFile() as cert_file:
+            cert_file.addstore("CA")
+            cert_file.addstore("ROOT")
+            return func(cert_file.name)
+
+    return wrapped
+
+
+def default_pem(func):
+    from requests import certs
+    def wrapped():
+        return func(certs.where())
+
+
+pem_getter = {
+    "nt": nt_pem
+}.get(os.name, default_pem)
+
+
+@pem_getter
+def main(pem):
     table = {}
     try:
-        fout = codecs.open(path, u"w", encoding=u"utf-8")
+        fout = open(path, "w", encoding="utf-8")
     except IOError as e:
-        fout = codecs.open(u"out.txt", u"w", encoding=u"utf-8")
-    flog = codecs.open(u"log.txt", u"w", encoding=u"utf-8")
+        fout = open("out.txt", "w", encoding="utf-8")
+    flog = open("log.txt", "w", encoding="utf-8")
     for (ip, name) in defaults:
-        put_ip(table, ip, name, u"default", flog)
-    for src, url, method in sources:
+        put_ip(table, ip, name, "default", flog)
+    sess = requests.Session()
+    sess.verify = pem
+    for src, url in sources:
         try:
-            resp = methods[method].open(url)
-            charset = resp.headers.getparam(u'charset') or u"utf-8"
-            for line in resp:
-                parts = line.decode(charset).split(u'#', 2)
-                if parts:
-                    fields = [s for s in parts[0].split() if s]
-                    if len(fields) >= 2:
-                        ip = fields[0]
-                        name = fields[1]
-                        put_ip(table, ip, name, src, flog)
-        except urllib2.URLError as e:
-            for line in unicode(e).splitlines():
-                log = src + u": " + line
-                print >> fout, u"#", log
-                print >> flog, log
-    fsw = codecs.open(u"switch.txt", u"w", encoding=u"utf-8")
-    print>> fsw, u"[SwitchyOmega Conditions]"
-    for (name, version), (ip, src) in sorted(table.iteritems(), key=get_key):
+            with contextlib.closing(sess.get(url, stream=True, proxies=proxies)) as resp:
+                for line in resp.iter_lines(decode_unicode=True):
+                    parts = line.split("#", 2)
+                    if parts:
+                        fields = [s for s in parts[0].split() if s]
+                        if len(fields) >= 2:
+                            ip = fields[0]
+                            name = fields[1]
+                            put_ip(table, ip, name, src, flog)
+        except requests.RequestException as e:
+            for line in str(e).splitlines():
+                log = src + ": " + line
+                print("#", log, file=fout)
+                print(log, file=flog)
+    fsw = open("switch.txt", "w", encoding="utf-8")
+    print("[SwitchyOmega Conditions]", file=fsw)
+    for (name, version), (ip, src) in sorted(table.items(), key=get_key):
         if version == 4:
-            print>> fsw, name
+            print(name, file=fsw)
         if version == 4 or allow_6_only or (name, 4) in table:
-            print>> fout, ip, name, u"#", src + u",", u"IPv" + str(version)
+            print(ip, name, "#", src + ",", "IPv" + str(version), file=fout)
         else:
-            print>> flog, u"(%s, %s) from %s is IPv6 only." % (ip, name, src)
+            print("(%s, %s) from %s is IPv6 only." % (ip, name, src), file=flog)
     fsw.close()
     fout.close()
     call(cmd)
-    print>> flog, u"OK!"
+    print("OK!", file=flog)
 
 
 if __name__ == "__main__":

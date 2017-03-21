@@ -1,31 +1,39 @@
-# coding=utf-8
-import urllib2
+﻿# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future.builtins import *
+
+from future.moves.urllib.request import build_opener, ProxyHandler
 import re
 
-path = u"C:\\Windows\\System32\\drivers\\etc\\hosts"
+path = r"C:\Windows\System32\drivers\etc\hosts"
 cmd = ["ipconfig", "/flushdns"]
 
-methods = {
-    None: urllib2.build_opener(),
-    u"XX-Net": urllib2.build_opener(urllib2.ProxyHandler({'http': 'localhost:8087', 'https': 'localhost:8087'})),
+proxies = {
+    # 'http': 'http://localhost:8087',
+    # 'https': 'http://localhost:8087'
 }
 
 defaults = [
-    (u"127.0.0.1", u"localhost"),
-    (u"::1", u"localhost"),
+    ("127.0.0.1", "localhost"),
+    ("::1", "localhost"),
 ]
 
 sources = [
-    (u"lennylxx", u"https://raw.githubusercontent.com/lennylxx/ipv6-hosts/master/hosts", None),
-    # (u"laod", u"file:///G:/software/Windows系列跟苹果系列/hosts", None),
-    (u"racaljk", u"https://raw.githubusercontent.com/racaljk/hosts/master/hosts", None),
-    (u"txthinking", u"https://raw.githubusercontent.com/txthinking/google-hosts/master/hosts", None),
-    # (u"yadgen", u"http://blog.yadgen.com/wp-content/uploads/2013/01/hosts_71.txt", None),
+    ("lennylxx", "https://raw.githubusercontent.com/lennylxx/ipv6-hosts/master/hosts"),
+    # ("laod", "file:///F:/software/Windows系列跟苹果系列/hosts"),
+    ("racaljk", "https://raw.githubusercontent.com/racaljk/hosts/master/hosts"),
+    ("txthinking", "https://raw.githubusercontent.com/txthinking/google-hosts/master/hosts"),
+    # ("yadgen", "http://blog.yadgen.com/wp-content/uploads/2013/01/hosts_71.txt"),
 ]
 
 excludes = [
-    re.compile(ur"(?<!gist\.)github\.com$"),
-    re.compile(ur"\*"),
+    re.compile(r"(?<!gist\.)github\.com$"),
+    re.compile(r"\*"),
+    re.compile(r"amazon(?:aws)?\.com$"),
+    re.compile(r"googleusercontent\.com$"),
+    re.compile(r"^fonts\.googleapis\.com$"),
+    re.compile(r"^fonts\.gstatic\.com$"),
+    re.compile(r"^www\.tensorflow\.org$")
 ]
 
 allow = {
@@ -33,4 +41,4 @@ allow = {
     6: True,
 }
 
-allow_6_only = False
+allow_6_only = True
