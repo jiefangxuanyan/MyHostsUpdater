@@ -145,3 +145,4 @@ ENV/
 /sources.py
 /config.py
 *.lnk
+/RunLinux
