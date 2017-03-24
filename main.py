@@ -57,9 +57,19 @@ def default_pem(func):
     def wrapped():
         return func(certs.where())
 
+    return wrapped
+
+
+def posix_pem(func):
+    def wrapped():
+        return func("/etc/ssl/certs")
+
+    return wrapped
+
 
 pem_getter = {
-    "nt": nt_pem
+    "nt": nt_pem,
+    "posix": posix_pem
 }.get(os.name, default_pem)
 
 
