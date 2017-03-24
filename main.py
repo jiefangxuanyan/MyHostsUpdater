@@ -9,6 +9,8 @@ import requests
 import contextlib
 import collections
 import os
+import cachecontrol
+import cachecontrol.caches
 
 
 def get_key(tup):
@@ -75,9 +77,13 @@ def main(pem):
         put_ip(table, ip, name, "default", flog)
     sess = requests.Session()
     sess.verify = pem
+    sess.proxies = proxies
+    cache = cachecontrol.CacheControlAdapter(cachecontrol.caches.FileCache(".cache"))
+    sess.mount('http://', cache)
+    sess.mount('https://', cache)
     for src, url in sources:
         try:
-            with contextlib.closing(sess.get(url, stream=True, proxies=proxies)) as resp:
+            with contextlib.closing(sess.get(url, stream=True)) as resp:
                 for line in resp.iter_lines(decode_unicode=True):
                     parts = line.split("#", 2)
                     if parts:
