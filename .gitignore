@@ -146,3 +146,4 @@ ENV/
 /config.py
 *.lnk
 /.cache
+/RunLinux

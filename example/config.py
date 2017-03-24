@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-from future.moves.urllib.request import build_opener, ProxyHandler
 import re
 
 path = r"C:\Windows\System32\drivers\etc\hosts"
