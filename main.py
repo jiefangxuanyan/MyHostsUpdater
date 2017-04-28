@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from future.builtins import *
 
-from subprocess import call
-from config import *
-import ipaddress
-import requests
 import contextlib
-import collections
 import os
+from subprocess import call
+
 import cachecontrol
 import cachecontrol.caches
+import ipaddress
+import requests
+from requests_file import FileAdapter
+
+from config import *
 
 
 def get_key(tup):
@@ -91,6 +92,7 @@ def main(pem):
     cache = cachecontrol.CacheControlAdapter(cachecontrol.caches.FileCache(".cache"))
     sess.mount('http://', cache)
     sess.mount('https://', cache)
+    sess.mount('file://', FileAdapter())
     for src, url in sources:
         try:
             with contextlib.closing(sess.get(url, stream=True)) as resp:
