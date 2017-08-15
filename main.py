@@ -96,7 +96,7 @@ def main(pem):
     for src, url in sources:
         try:
             with contextlib.closing(sess.get(url, stream=True)) as resp:
-                for line in resp.iter_lines(decode_unicode=True):
+                for line in resp.text.splitlines():
                     parts = line.split("#", 2)
                     if parts:
                         fields = [s for s in parts[0].split() if s]
